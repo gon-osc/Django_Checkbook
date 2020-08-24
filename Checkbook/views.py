@@ -13,17 +13,18 @@ def home(request):
 
 
 def balance(request, pk):
-    transactions = Transaction.Transactions.filter(Account=pk)
-    current_total = Account.initial_deposit
+    account = get_object_or_404(Account, pk=pk)
+    transactions = Transaction.Transactions.filter(account=pk)
+    current_total = account.initial_deposit
     table_contents = {}
     for t in transactions:
         if t.type == 'Deposit':
             current_total += t.amount
             table_contents.update({t: current_total})
         else:
-            current_total = t.amount
+            current_total -= t.amount
             table_contents.update({t: current_total})
-    content = {'account': Account, 'table_content': table_contents, 'balance': current_total}
+    content = {'account': account, 'table_content': table_contents, 'balance': current_total}
     return render(request, 'checkbook/BalanceSheet.html', content)
 
 
@@ -43,6 +44,6 @@ def transaction(request):
         if form.is_valid():
             pk = request.POST['account']
             form.save()
-            return balance(request,pk)
+            return balance(request, pk)
     content = {'form': form}
     return render(request, 'checkbook/AddTransaction.html', content)
